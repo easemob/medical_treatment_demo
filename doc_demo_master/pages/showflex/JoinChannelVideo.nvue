@@ -1,0 +1,252 @@
+<template>
+	<div class="container">
+		<view class="container">
+			<rtc-surface-view v-if="true" class="local" :uid="0"></rtc-surface-view>
+			<view class="remoteContainer" v-if="remoteUid">
+				<rtc-surface-view class="remoteView" :uid="remoteUid" :zOrderMediaOverlay="true"></rtc-surface-view>
+			</view>
+		</view>
+		<view class="bottomView">
+			<view class="circleBoxView">
+				<view class="circleBox">
+					<image class="circleImg" src="/static/iconfont/icon_video_quiet.png"></image>
+					<text class="hint">静音</text>
+				</view>
+				<view class="circleBox" @click="videoCancelAction">
+					<image class="circleImg" src="/static/iconfont/icon_video_cancel.png"></image>
+					<text class="hint">取消</text>
+				</view>
+				<view class="circleBox">
+					<image class="circleImg" src="/static/iconfont/icon_video_speaker.png"></image>
+					<text class="hint">免提</text>
+				</view>
+			</view>
+		</view>
+	</div>
+</template>
+
+<script>
+	import config from '@/common/agora.config';
+	import permision from "@/js_sdk/wa-permission/permission";
+
+	import RtcEngine, {
+		RtcChannel
+	} from '../../components/Agora-RTC-JS/index';
+	import {
+		ClientRole,
+		ChannelProfile
+	} from '../../components/Agora-RTC-JS/common/Enums';
+	import RtcSurfaceView from '../../components/Agora-RTC-JS/RtcSurfaceView';
+
+	export default {
+		components: {
+			RtcSurfaceView: RtcSurfaceView
+		},
+		data() {
+			return {
+				username: {},
+				engine: undefined,
+				channelId: config.channelId,
+				isJoined: false,
+				stringUid: config.StringUid,
+				remoteUid: '',
+				isSwitchCamera: true,
+				isSwitchRender: true
+			}
+		},
+		onLoad(options) {
+			console.log('onLoad');
+			this.initEngine();
+			this.joinChannel();
+			this.username = JSON.parse(options.username);
+			this.myName = uni.getStorageSync("myUsername"); // 获取当前用户名
+			this.stringUid = parseInt(this.myName);
+			// this.channelId=this.username['myName']+'-'+this.username['your'];
+			console.log(this.channelId)
+		},
+		onBackPress() {
+			console.log('onBackPress');
+			this.engine && this.engine.destroy();
+		},
+		methods: {
+			async initEngine() {
+				this.engine = await RtcEngine.create(config.appId);
+				this.addListeners();
+				await this.engine.enableVideo();
+				await this.engine.startPreview();
+				// setEnableSpeakerphone扬声器
+				await this.engine.setChannelProfile(ChannelProfile.LiveBroadcasting);
+				await this.engine.setClientRole(ClientRole.Broadcaster);
+			},
+			addListeners() {
+				this.engine.addListener('JoinChannelSuccess', (channel, uid, elapsed) => {
+					console.info('JoinChannelSuccess', channel, uid, elapsed);
+					this.isJoined = true;
+				});
+				this.engine.addListener('JoinChannelSuccess', (channel, uid, elapsed) => {
+					console.info('JoinChannelSuccess', channel, uid, elapsed);
+					this.isJoined = true;
+				});
+				this.engine.addListener('UserJoined', (uid, elapsed) => {
+					console.info('UserJoined', uid, elapsed);
+					this.remoteUid = uid;
+				});
+				this.engine.addListener('UserOffline', (uid, reason) => {
+					console.info('UserOffline', uid, reason);
+					this.remoteUid = '';
+				});
+				this.engine.addListener('LeaveChannel', (stats) => {
+					console.info('LeaveChannel', stats);
+					this.isJoined = false;
+					this.remoteUid = '';
+				});
+			},
+			async joinChannel() {
+				if (uni.getSystemInfoSync().platform === 'android') {
+					await permision.requestAndroidPermission('android.permission.RECORD_AUDIO');
+					await permision.requestAndroidPermission('android.permission.CAMERA');
+				}
+				console.log('config.token:' + config.token + ',this.channelId:' + this.channelId + ',this.stringUid:' +
+					this.stringUid);
+				await this.engine &&
+					this.engine.joinChannelWithUserAccount(
+						config.token,
+						this.channelId,
+						this.stringUid
+					);
+			},
+			async leaveChannel() {
+				await this.engine && this.engine.leaveChannel();
+			},
+			switchCamera() {
+				this.engine &&
+					this.engine.switchCamera()
+					.then(() => {
+						this.isSwitchCamera = !this.isSwitchCamera;
+					})
+					.catch((err) => {
+						console.warn('switchCamera', err);
+					});
+			},
+			switchRender() {
+				this.isSwitchRender = !this.isSwitchRender;
+			},
+			replaceInput(event) {
+				this.channelId = event.detail.value;
+			},
+			videoCancelAction() {
+				console.log('videoCancelAction');
+				this.engine && this.engine.destroy();
+				uni.navigateBack({
+
+				})
+			}
+		}
+	}
+</script>
+
+<style>
+	.container {
+		flex: 1;
+		background-color: #F7F8FA;
+	}
+
+	.bottomView {
+		width: 710upx;
+		position: absolute;
+		bottom: 128rpx;
+		margin: 20upx;
+		align-items: center;
+		justify-content: center;
+		flex-direction: row;
+		flex-direction: column;
+	}
+
+	.circleBoxView {
+		flex-direction: row;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.circleBox {
+		width: 200upx;
+		padding: 30upx 0;
+		margin: 10upx;
+		align-items: center;
+		flex-direction: column;
+	}
+
+	.circleIco {
+		font-size: 30upx;
+		width: 100upx;
+		height: 100upx;
+		line-height: 100upx;
+		border-radius: 500px;
+		border-style: solid;
+		border-width: 1px;
+		border-color: #FFFFFF;
+		text-align: center;
+		color: #FFFFFF;
+		font-size: 50upx;
+	}
+
+	.circleImg {
+		width: 128rpx;
+		height: 128rpx;
+	}
+
+	.phone {
+		border-style: solid;
+		border-width: 1px;
+		border-color: #FFFFFF;
+	}
+
+	.circleBig {
+		font-size: 30upx;
+		width: 128upx;
+		height: 128upx;
+		line-height: 128upx;
+		border-radius: 500px;
+		border-style: solid;
+		border-width: 1px;
+		border-color: #FFFFFF;
+		text-align: center;
+		color: #FFFFFF;
+		font-size: 50upx;
+		padding: 24upx;
+	}
+
+	.redPhone {
+		background-color: #c5433a;
+		border-style: solid;
+		border-width: 1px;
+		border-color: #c5433a;
+	}
+
+	.hint {
+		font-size: 30upx;
+		color: #FFFFFF;
+		padding-top: 20upx;
+	}
+
+	.bottom-item {
+		flex: 1;
+		width: 100%;
+	}
+
+	.local {
+		flex: 1;
+	}
+
+	.remoteContainer {
+		position: absolute;
+		left: 0;
+		top: 0;
+		flex-direction: row;
+	}
+
+	.remoteView {
+		width: 120;
+		height: 120;
+	}
+</style>

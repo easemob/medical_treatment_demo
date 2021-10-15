@@ -1,0 +1,75 @@
+console.log("onTextMessage", message);
+{
+	"id": "905875579134281892",
+	"type": "groupchat",
+	"contentsType": "TEXT",
+	"from": "15358801339",
+	"to": "156056194973697",
+	"data": "fcc",
+	"ext": {},
+	"sourceMsg": "fcc",
+	"time": "1628480394164",
+	"msgConfig": null,
+	"error": false,
+	"errorText": "",
+	"errorCode": 0
+}
+console.log('msg',msg);
+msgStorage.saveMsg(msg, "custom");
+{
+ "id": 363474027971,
+ "type": "custom",
+ "body": {
+  "id": 363474027971,
+  "to": "156071991771137",
+  "from": "18661289339",
+  "type": "custom",
+  "roomType": false,
+  "chatType": "groupchat",
+  "ext": {
+   "extmsg": "inviteVideoAction",
+   "extype": 2,
+   "recordTime": 25,
+   "inviteCode": 0
+  },
+  "success": "function() { [native code] }",
+  "fail": "function() { [native code] }"
+ }
+}
+console.log("onCustomMessage", message);
+{
+ "id": "905650036468090644",
+ "type": "groupchat",
+ "contentsType": "CUSTOM",
+ "from": "18661289339",
+ "to": "156071991771137",
+ "customEvent": "",
+ "params": {},
+ "customExts": {},
+ "ext": {
+  "extmsg": "inviteVideoAction",
+  "extype": 2,
+  "recordTime": 8,
+  "inviteCode": 0
+ },
+ "time": "1628427880938"
+}
+
+console.log('receiveMsg',receiveMsg);
+{
+ "id": "905650036468090644",
+ "type": "groupchat",
+ "contentsType": "CUSTOM",
+ "from": "18661289339",
+ "to": "156071991771137",
+ "customEvent": "",
+ "params": {},
+ "customExts": {},
+ "ext": {
+  "extmsg": "inviteVideoAction",
+  "extype": 2,
+  "recordTime": 8,
+  "inviteCode": 0
+ },
+ "time": "1628427880938"
+}

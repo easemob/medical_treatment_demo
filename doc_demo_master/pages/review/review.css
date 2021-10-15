@@ -1,0 +1,139 @@
+page {
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	background-color: #F7F8FA;
+	min-height: 100%;
+	height: auto;
+}
+
+.uni-review-section {
+	height: 24px;
+	background-color: #F7F8FA;
+}
+
+.review-header-section {
+	display: flex;
+	width: 180rpx;
+	flex-direction: row;
+	line-height: 48rpx;
+	margin: 8rpx;
+	font-size: 30rpx;
+}
+
+.review-main {
+	display: flex;
+	flex-direction: column;
+}
+
+.review-header {
+	display: flex;
+	background-color: #FFFFFF;
+	padding: 64rpx 32rpx;
+	align-items: center;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.review-column {
+	display: flex;
+	margin-top: 16rpx;
+	flex-direction: column;
+	background-color: #FFFFFF;
+}
+
+.review-column-section {
+	display: flex;
+	flex-direction: row;
+	color: #535568;
+	line-height: 48rpx;
+	align-items: center;
+	margin: 24rpx 36rpx 8rpx;
+	font-size: 30rpx;
+}
+
+.review-column-footer {
+	color: #9FA4AE;
+	margin-left: 48rpx;
+	margin-bottom: 24rpx;
+	line-height: 24rpx;
+	font-size: 20rpx;
+}
+
+.review_column_picview {
+	margin: 4rpx 36rpx 36rpx;
+	display: flex;
+	flex-direction: row;
+}
+
+.review_avatar_image {
+	margin: 12rpx;
+	width: 265rpx;
+	height: 265rpx;
+}
+
+.review_column_image {
+	margin: 12rpx;
+	width: 265rpx;
+	height: 160rpx;
+}
+
+.review-header-image {
+	margin-top: 8rpx;
+	width: 64rpx;
+	height: 64rpx;
+}
+
+.review-header-title {
+	color: #535568;
+	margin-top: 8rpx;
+	font-size: 36rpx;
+}
+
+.review-column-tag {
+	color: #E02020;
+	margin: 8rpx;
+	font-size: 40rpx;
+	line-height: 48rpx;
+}
+
+.review-column-title {
+	color: #535568;
+	margin: 24rpx 48rpx 8rpx;
+	font-size: 30rpx;
+}
+
+.review-header-message {
+	color: #9FA4AE;
+	text-align: center;
+	margin: 8rpx 24rpx;
+	font-size: 24rpx;
+}
+
+.review_btn button {
+	flex: 1;
+	height: 84rpx;
+	border-radius: 8rpx;
+	line-height: 96rpx;
+	margin: 64rpx 38rpx 38rpx;
+	color: rgb(255, 255, 255);
+	background-color: #0873DE;
+	font-size: 34rpx;
+	letter-spacing: 8rpx;
+	background-image: linear-gradient(90deg, #07C193, #3EAAB4);
+}
+
+.btn_hover {
+	background-color: #94999c;
+}
+
+.piccon_button {
+	width: 92%;
+	padding: 0 72rpx;
+	margin: 64rpx 32rpx;
+	font-size: 48rpx;
+	line-height: 1.8;
+	border-radius: 8rpx;
+	border-width: 0rpx;
+	background-image: linear-gradient(90deg, #07C193, #3EAAB4);
+}

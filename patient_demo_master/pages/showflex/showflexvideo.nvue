@@ -1,0 +1,389 @@
+<template>
+	<div class="mainview">
+		<view class="headerView">
+			<view v-if="isJoined" class="circleBoxView" @click="circleAction(1)">
+				<image class="circleHImg" src="/static/iconfont/icon_docdet_header.png"></image>
+			</view>
+			<view class="circleBodyView" v-if="!isConnected">
+				<image class="circleItemAvatar" src="/static/icons/icon-avatarimg.png"></image>
+				<view class="circleCenter"><text class="cenametext">张清北医生</text>
+					<text class="centertext">邀请你进行视频通话…</text>
+				</view>
+				<view class="circlePopupView"><text class="popuptext">温馨提示：</text>
+					<text class="popuptext">1 通话过程会自动录音，通话结束后会自动发送在聊天区；</text>
+					<text class="popuptext">2 通话接通后开始计时，15分钟后将自动持断，请珍惜问诊时间；</text>
+				</view>
+			</view>
+		</view>
+		<view class="container" v-if="isConnected">
+			<rtc-surface-view v-if="engine" class="local" :uid="localUid"></rtc-surface-view>
+			<view class="remoteContainer" v-if="remoteUid">
+				<rtc-surface-view class="remoteView" :uid="remoteUid" :zOrderMediaOverlay="true"></rtc-surface-view>
+			</view>
+		</view>
+		<view class="bottomView">
+			<view class="circleCenter" v-if="isJoined">
+				<text class="bottomtext">{{formatedRecordTime}}</text>
+			</view>
+			<view class="circleBoxView">
+				<view class="circleBox" v-if="isConnected">
+				</view>
+				<view class="circleBox" @click="circleAction(2)">
+					<image class="circleImg" src="/static/iconfont/icon_video_cancel.png"></image>
+					<text class="hint">取消</text>
+				</view>
+				<view class="circleBox" @click="circleAction(3)" v-if="isConnected">
+					<image class="circleImg" src="/static/iconfont/icon_video_mute.png"></image>
+					<text class="hint">转换摄像头</text>
+				</view>
+				<view class="circleBox" @click="circleAction(0)" v-if="!isConnected">
+					<image class="circleImg" src="/static/iconfont/icon_video_accept.png"></image>
+					<text class="hint">接听</text>
+				</view>
+			</view>
+		</view>
+	</div>
+</template>
+
+<script>
+	import config from '@/common/agora.config';
+	import permision from "@/js_sdk/wa-permission/permission";
+
+	import RtcEngine, {
+		RtcChannel
+	} from '../../components/Agora-RTC-JS/index';
+	import {
+		ClientRole,
+		ChannelProfile
+	} from '../../components/Agora-RTC-JS/common/Enums';
+	import RtcSurfaceView from '../../components/Agora-RTC-JS/RtcSurfaceView';
+	const innerAudioContext = uni.createInnerAudioContext();
+	innerAudioContext.autoplay = false;
+	innerAudioContext.loop = true;
+	innerAudioContext.src = '../../static/huaweinova.mp3';
+	import util from '@/common/util.js';
+	let interval = null;
+	export default {
+		components: {
+			RtcSurfaceView: RtcSurfaceView
+		},
+		data() {
+			return {
+				recordTime: 0,
+				formatedRecordTime: '00:00', //录音的总时间
+				username: {
+					groupId: ""
+				},
+				isConnected: false,
+				engine: undefined,
+				channelId: config.channelId,
+				isJoined: false,
+				isSwitchCamera: true,
+				stringUid: '',
+				localUid: 0,
+				remoteUid: '',
+				isSwitchCamera: true,
+				chatroomAgoraToken: ''
+			}
+		},
+		onLoad(options) {
+			console.log(options);
+			this.username = JSON.parse(options.username);
+			let encodeToken = JSON.parse(options.encodeToken);
+			this.chatroomAgoraToken = decodeURIComponent(encodeToken);
+			this.stringUid = this.username['myName'];
+			this.channelId = this.username['groupId'];
+			console.log("stringUid", this.stringUid);
+			console.log("channelId", this.channelId);
+			console.log("chatroomAgoraToken", this.chatroomAgoraToken);
+			this.initEngine();
+			// 计时开始--分割线--Action
+			console.log('onLoad');
+			innerAudioContext.onPlay(() => {
+				console.log('开始播放');
+			});
+			innerAudioContext.onError((res) => {
+				console.log(res.errMsg);
+				console.log(res.errCode);
+			});
+			innerAudioContext.play();
+			uni.$on('receiverInvite', (res) => {
+				console.log(res);
+				if (res.restate == false) {
+					uni.navigateBack();
+				}
+			});
+		},
+		onUnload: function() {
+			clearInterval(interval);
+			innerAudioContext.stop();
+			this.isJoined = false;
+			uni.$off('receiverInvite');
+			this.engine && this.engine.destroy();
+		},
+		onBackPress() {
+			console.log('onBackPress');
+			this.engine && this.engine.destroy();
+			if (!this.isJoined) {
+				uni.$emit('cancelInvite', {
+					groupId: this.channelId,
+					extype: 2
+				});
+			}
+		},
+		methods: {
+			circleAction: function(position) {
+				switch (position) {
+					case 0:
+						this.isConnected = true;
+						this.joinChannel();
+						break;
+					case 1:
+						if (this.localUid == 0) {
+							this.localUid = this.remoteUid;
+							this.remoteUid = 0;
+						} else {
+							this.remoteUid = this.localUid;
+							this.localUid = 0;
+						}
+						break;
+					case 2:
+						uni.navigateBack();
+						break;
+					case 3:
+						this.engine &&
+							this.engine.switchCamera()
+							.then(() => {
+								this.isSwitchCamera = !this.isSwitchCamera;
+							})
+							.catch((err) => {
+								console.warn('switchCamera', err);
+							});
+						break;
+				}
+			},
+			async initEngine() {
+				console.log("initEngine");
+				this.engine = await RtcEngine.create(config.appId);
+				RtcEngine.create(config.appId).then((engine) => {
+					console.log('init success');
+				});
+				this.addListeners();
+				await this.engine.enableVideo();
+				await this.engine.startPreview();
+				// setEnableSpeakerphone扬声器
+				await this.engine.setChannelProfile(ChannelProfile.LiveBroadcasting);
+				await this.engine.setClientRole(ClientRole.Broadcaster);
+			},
+			addListeners() {
+				this.engine.addListener('JoinChannelSuccess', (channel, uid, elapsed) => {
+					console.info('JoinChannelSuccess', channel, uid, elapsed);
+					this.isJoined = true;
+					uni.showToast({
+						title: '已接通',
+						icon: 'none'
+					})
+					innerAudioContext.stop();
+					interval = setInterval(() => {
+						this.recordTime += 1;
+						this.formatedRecordTime = util.formatMinTime(this.recordTime);
+					}, 1000);
+				});
+				this.engine.addListener('UserJoined', (uid, elapsed) => {
+					console.info('UserJoined', uid, elapsed);
+					this.remoteUid = uid;
+				});
+				this.engine.addListener('UserOffline', (uid, reason) => {
+					console.info('UserOffline', uid, reason);
+					this.remoteUid = '';
+					uni.navigateBack();
+				});
+				this.engine.addListener('LeaveChannel', (stats) => {
+					console.info('LeaveChannel', stats);
+					this.isJoined = false;
+					this.remoteUid = '';
+				});
+			},
+			async joinChannel() {
+				if (uni.getSystemInfoSync().platform === 'android') {
+					await permision.requestAndroidPermission('android.permission.RECORD_AUDIO');
+					await permision.requestAndroidPermission('android.permission.CAMERA');
+				}
+				console.log(this.channelId, this.stringUid + '==>' + this.chatroomAgoraToken);
+				await this.engine && this.engine.joinChannelWithUserAccount(
+					this.chatroomAgoraToken,
+					this.channelId,
+					this.stringUid
+				);
+			},
+			async leaveChannel() {
+				await this.engine && this.engine.leaveChannel();
+			},
+			getUserInfo() {
+				this.engine &&
+					this.engine.getUserInfoByUserAccount(this.stringUid)
+					.then((userInfo) => {
+						console.debug('getUserInfoByUserAccount', userInfo);
+						uni.showModal({
+							title: JSON.stringify(userInfo)
+						});
+					})
+					.catch((err) => {
+						console.error('getUserInfoByUserAccount', err);
+					});
+			},
+			switchCamera() {
+				this.engine &&
+					this.engine.switchCamera()
+					.then(() => {
+						this.isSwitchCamera = !this.isSwitchCamera;
+					})
+					.catch((err) => {
+						console.warn('switchCamera', err);
+					});
+			}
+		}
+	}
+</script>
+
+<style>
+	.mainview {
+		flex: 1;
+		background-color: #6F6B69;
+	}
+
+	.container {
+		flex: 1;
+		background-color: #FFAA66;
+	}
+
+	.local {
+		flex: 1;
+		background-color: #DD00FF;
+	}
+
+	.remoteContainer {
+		position: fixed;
+		right: 48rpx;
+		margin-top: 120rpx;
+		width: 240rpx;
+		height: 360rpx;
+		flex-direction: row;
+		background-color: #FFEEDD;
+	}
+
+	.remoteView {
+		width: 240rpx;
+		height: 360rpx;
+	}
+
+	.headerView {
+		flex: 1;
+		width: 92%;
+		position: fixed;
+		margin: 4%;
+		/* #ifdef APP-PLUS-NVUE */
+		width: 680rpx;
+		margin: 96rpx 36rpx;
+		/* #endif */
+	}
+
+	.circleBodyView {
+		margin-top: 64rpx;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.circleCenter {
+		margin-top: 16rpx;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.circlePopupView {
+		background-color: rgba(60, 61, 68, 0.4);
+		border-radius: 8rpx;
+		margin: 48rpx 16rpx;
+		width: 600rpx;
+		padding: 32rpx 40rpx;
+		justify-content: center;
+		align-items: flex-start;
+	}
+
+	.cenametext {
+		color: #FFFFFF;
+		font-size: 36rpx;
+		line-height: 48rpx;
+		margin: 8rpx;
+	}
+
+	.centertext {
+		color: #FFFFFF;
+		font-size: 24rpx;
+		line-height: 40rpx;
+	}
+
+	.bottomtext {
+		color: #FFFFFF;
+		font-size: 28rpx;
+	}
+
+	.popuptext {
+		color: #EFEFEF;
+		font-size: 24rpx;
+		line-height: 40rpx;
+	}
+
+	.circleItemAvatar {
+		margin: 16rpx;
+		width: 160rpx;
+		height: 160rpx;
+		border-radius: 80rpx;
+	}
+
+	.circleHImg {
+		padding: 8rpx;
+		width: 96rpx;
+		height: 96rpx;
+	}
+
+	.bottomView {
+		width: 92%;
+		position: fixed;
+		bottom: 48rpx;
+		margin: 2% 4%;
+		align-items: center;
+		justify-content: center;
+		flex-direction: column;
+		/* #ifdef APP-PLUS-NVUE */
+		width: 680rpx;
+		margin: 36rpx;
+		/* #endif */
+	}
+
+	.circleBoxView {
+		flex-direction: row;
+		justify-content: flex-start;
+		align-items: center;
+	}
+
+	.circleBox {
+		width: 200rpx;
+		padding: 30rpx 0;
+		margin: 10rpx;
+		align-items: center;
+		flex-direction: column;
+	}
+
+	.circleImg {
+		width: 128rpx;
+		height: 128rpx;
+	}
+
+	.hint {
+		font-size: 24rpx;
+		color: #FFFFFF;
+		padding-top: 36rpx;
+	}
+</style>

@@ -1,0 +1,47 @@
+page {
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	background-color: #F7F8FA;
+	min-height: 100%;
+	height: auto;
+}
+
+.setting-column {
+	display: flex;
+	background-color: #FFFFFF;
+	flex-direction: column;
+}
+
+.uni-review-section {
+	height: 16px;
+	background-color: #F7F8FA;
+}
+
+.item-orange-right {
+	color: #F78100;
+	font-size: 30rpx;
+}
+
+.setting-column-title {
+	color: #535568;
+	margin: 24rpx 48rpx 8rpx;
+	font-size: 30rpx;
+}
+
+.setting_btn button {
+	flex: 1;
+	height: 84rpx;
+	border-radius: 8rpx;
+	line-height: 96rpx;
+	margin: 40rpx;
+	color: rgb(255, 255, 255);
+	background-color: #0873DE;
+	font-size: 34rpx;
+	letter-spacing: 8rpx;
+	background-image: linear-gradient(90deg, #07C193, #3EAAB4);
+}
+
+.btn_hover {
+	background-color: #94999c;
+}
