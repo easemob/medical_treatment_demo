@@ -29,5 +29,5 @@ Android8、iOS9以上
 - common/config.js  网络地址路径
 
 - utils/WebIMConfig.js 环信配置文件
-- appkey:			环信ID
+- appkey:			环信ID （需要替换）
 
