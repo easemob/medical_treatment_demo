@@ -19,15 +19,15 @@ HBuilder X 3.1.12
 Android8、iOS9以上
 
 ## 运行配置
-- common/agora.config.js声网配置文件
+#### common/agora.config.js 声网配置文件
 - "appId":			声网ID（需要替换）
 - "token":			声网token（需要替换）
 - "channelId":		测试channelId=>自定义（不需要替换）
 - "uid":			测试channelId=>自定义（不需要替换）
 - "stringUid":		测试channelId=>自定义（不需要替换）
 
-- common/config.js  网络地址路径
+#### common/config.js  网络地址路径
 
-- utils/WebIMConfig.js 环信配置文件
+#### utils/WebIMConfig.js 环信配置文件
 - appkey:			环信ID （需要替换）
 
