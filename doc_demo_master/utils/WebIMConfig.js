@@ -37,7 +37,7 @@ let config = {
   /*
    * Application AppKey
    */
-  appkey: "comcaesar#ecchat",
+  appkey: "YOUR APPKEY",
 
   /*
    * Whether to use HTTPS      '1177161227178308#xcx'
