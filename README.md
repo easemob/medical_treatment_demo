@@ -31,3 +31,13 @@ Android8、iOS9以上
 #### utils/WebIMConfig.js 环信配置文件
 - appkey:			环信ID （需要替换）
 
+
+#### 服务端运行
+需要全局搜索php服务端，所有涉及到client_id，client_secret，org_name，app_name这四项全部需要替换（最好是全局搜索替换）
+```php
+ $options['client_id'] = 'YXA61epvIH7aEeaqXJfnedRFiQ';
+            $options['client_secret'] = 'YXA6j79LmoNuaMRs78ztKWt_0tOs4_c'; 
+            $options['org_name'] = 'comcaesar';
+            $options['app_name'] = 'ecchat'; 
+```
+
